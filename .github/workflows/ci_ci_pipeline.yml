@@ -7,7 +7,7 @@ on:
 jobs:
   plan:
     name: Terraform plan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest 
     steps:
       - uses: actions/checkout@v5
       - name: Configure AWS credentials
@@ -19,13 +19,14 @@ jobs:
       - name: Initialise project and view terraform plan
         run: |
           cd infra/terraform
-          terrafrom validate
+          terraform validate
           terraform fmt
           terraform init
-          terrafrom plan
+          terraform plan
   deploy:
     name: Terraform Deploy
     runs-on: ubuntu-latest
+    needs: [plan]
     steps:
       - uses: actions/checkout@v5
       - name: Configure AWS credentials
@@ -37,7 +38,7 @@ jobs:
       - name: Initialise project and deploy terraform 
         run: |
           cd infra/terraform
-          terrafrom validate
+          terraform validate
           terraform fmt
           terraform init
-          terrafrom apply --auto-approve=true
+          terraform apply --auto-approve=true
