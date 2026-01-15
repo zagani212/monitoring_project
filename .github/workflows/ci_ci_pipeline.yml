@@ -63,7 +63,7 @@ jobs:
       - name: Initialise project and deploy terraform 
         run: |
           cd infra/terraform
-          terraform validate
-          terraform fmt
           terraform init
+          terraform fmt
+          terraform validate
           terraform apply --auto-approve=true
