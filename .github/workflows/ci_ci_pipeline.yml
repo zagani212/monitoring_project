@@ -32,9 +32,9 @@ jobs:
       - name: Initialise project and view terraform plan
         run: |
           cd infra/terraform
+          terraform init
           terraform validate
           terraform fmt
-          terraform init
           terraform plan
   deploy:
     name: Terraform Deploy
