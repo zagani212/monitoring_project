@@ -106,3 +106,13 @@ jobs:
           tags: |
             ${{secrets.DOCKER_USERNAME}}/${{secrets.DOCKERHUB_PORJECT_NAME}}:latest
             ${{secrets.DOCKER_USERNAME}}/${{secrets.DOCKERHUB_PORJECT_NAME}}:${{steps.meta.outputs.SHORT_SHA}}
+  deploy_containers_on_server:
+    name: Deploy containers on The server 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Deploy containers on The server
+        run: |
+          cd monitoring
+          docker-compose up -d
