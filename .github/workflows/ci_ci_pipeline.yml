@@ -94,11 +94,13 @@ jobs:
         with:
           username: ${{secrets.DOCKER_USERNAME}}
           password: ${{secrets.DOCKERHUB_TOKEN}}
+      - name: read Dockerfile
+        run:  
+          cat app/Dockerfile
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: ./app
-          file: Dockerfile
           push: true
           plateforms: liinux/amd64, linux/arm64
           tags: |
