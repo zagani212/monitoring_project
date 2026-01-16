@@ -1,4 +1,4 @@
-name: learn-github-actions
+name: Deploy Monitoring Project
 on: 
   push: 
     branches:
@@ -39,9 +39,9 @@ jobs:
   deploy:
     name: Terraform Deploy
     runs-on: ubuntu-latest
-    outputs:
-      PUBLIC_IP: ${{steps.apply.outputs.PUBLIC_IP}}
     needs: [plan]
+    outputs:
+      public_ip: ${{ steps.apply.outputs.public_ip }}
     steps:
       - uses: actions/checkout@v6
       - name: Configure AWS credentials
@@ -70,7 +70,7 @@ jobs:
           terraform fmt
           terraform validate
           terraform apply --auto-approve=true
-          set PUBLIC_IP=$(terraform output -raw public_ip)
+          echo "public_ip=$(terraform output -raw public_ip)" > "$GITHUB_OUTPUT"
   build_app_and_push:
     name: Build app Image and push to docker Hub
     runs-on: ubuntu-latest
@@ -109,23 +109,22 @@ jobs:
   deploy_containers_on_server:
     name: Deploy containers on The server 
     runs-on: ubuntu-latest
-    needs: [deploy]
+    needs: deploy
+    env: 
+      public_ip: ${{ needs.deploy.outputs.public_ip }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - name: Install Ansible
+      - name: Setup SSH
         run: |
-          sudo apt update
-          sudo apt install software-properties-common
-          sudo add-apt-repository --yes --update ppa:ansible/ansible
-          sudo apt install ansible
-      - name: Apply Ansible Playbook
+            mkdir -p ~/.ssh 
+            printf "%s\n" "${{ secrets.SSH_SECRET_KEY }}" > ~/.ssh/id_rsa
+            cat ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H "${{ env.public_ip }}" >> ~/.ssh/known_hosts
+        shell: bash
+      - name: Copy project files to Server
         run: |
-          cd config/ansible
-          echo "server ansible_host=${{needs.deploy.outputs.PUBLIC_IP}} ansible_user=ubuntu ansible_ssh_private_key_file=../../keys/my_key" > inventory.ini
-          cat inventory.ini
-          ansible-playbook playbook.yml
-      - name: Deploy containers on The server
-        run: |
-          cd monitoring
-          docker-compose up -d
+            ssh -i ~/.ssh/id_rsa ubuntu@${{ env.public_ip }} "mkdir -p ~/app"
+            scp -r -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $(ls -A | grep -v -E '.git') ubuntu@${{ env.public_ip }}:~/app/
+        shell: bash
