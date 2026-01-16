@@ -97,7 +97,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: app/.
+          context: ./app
           file: Dockerfile
           push: true
           plateforms: liinux/amd64, linux/arm64
