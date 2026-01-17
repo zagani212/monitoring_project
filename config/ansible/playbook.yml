@@ -10,27 +10,39 @@
           - ca-certificates
           - curl
           - gnupg
+          - lsb-release
         state: present
         update_cache: yes
 
-    - name: Create Docker keyring directory
+    - name: Create Docker keyrings directory
       file:
         path: /etc/apt/keyrings
         state: directory
         mode: "0755"
 
-    - name: Add Docker GPG key
+    - name: Download Docker GPG key
       get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /etc/apt/keyrings/docker.gpg
+        dest: /tmp/docker.asc
         mode: "0644"
+
+    - name: Dearmor Docker GPG key
+      command: >
+        gpg --dearmor -o /etc/apt/keyrings/docker.gpg /tmp/docker.asc
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+
+    - name: Get Ubuntu codename
+      command: lsb_release -cs
+      register: ubuntu_codename
+      changed_when: false
 
     - name: Add Docker repository
       apt_repository:
         repo: >
           deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg]
           https://download.docker.com/linux/ubuntu
-          focal stable
+          {{ ubuntu_codename.stdout }} stable
         state: present
         filename: docker
 
