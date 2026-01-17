@@ -6,9 +6,6 @@
 
 
   tasks: 
-  - name: Update Dependecies
-    ansible.builtin.apt:
-      update_cache: yes
   - name: Add Docker GPG apt Key
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
