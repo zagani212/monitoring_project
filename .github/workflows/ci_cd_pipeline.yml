@@ -119,7 +119,6 @@ jobs:
         run: |
             mkdir -p ~/.ssh 
             printf "%s\n" "${{ secrets.SSH_SECRET_KEY }}" > ~/.ssh/id_rsa
-            cat ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
             ssh-keyscan -H "${{ env.public_ip }}" >> ~/.ssh/known_hosts
         shell: bash
@@ -127,4 +126,9 @@ jobs:
         run: |
             ssh -i ~/.ssh/id_rsa ubuntu@${{ env.public_ip }} "mkdir -p ~/app"
             scp -r -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $(ls -A | grep -v -E '.git') ubuntu@${{ env.public_ip }}:~/app/
+            ssh -i ~/.ssh/id_rsa ubuntu@${{ env.public_ip }} << 'EOF'
+              cd ~/app
+              docker compose up -d
+              docker system prune -f
+            EOF
         shell: bash
